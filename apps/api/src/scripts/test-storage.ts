@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { chunkTranscript } from "../lib/chunker.js";
 import { embedBatch } from "../lib/embeddings.js";
-import { createCollection, upsertChunks, qdrantClient, COLLECTION_NAME } from "../lib/qdrant.js";
+import { createCollection, upsertChunks, getQdrantClient, COLLECTION_NAME } from "../lib/qdrant.js";
 
 const sampleText = `
 Sarah: Let's discuss the Q3 API redesign. Mike proposed migrating from REST to GraphQL.
@@ -38,7 +38,7 @@ async function main(): Promise<void> {
 
   // 5. Verify — read back from Qdrant
   console.log("\n--- Verifying: reading points back ---");
-  const collectionInfo = await qdrantClient.getCollection(COLLECTION_NAME);
+  const collectionInfo = await getQdrantClient().getCollection(COLLECTION_NAME);
   console.log(`Collection "${COLLECTION_NAME}" info:`);
   console.log(`  Points count: ${collectionInfo.points_count}`);
   console.log(`  Vectors size: ${collectionInfo.config.params.vectors}`);
@@ -46,7 +46,7 @@ async function main(): Promise<void> {
 
   // 6. Scroll to see actual stored data
   console.log("\n--- Stored points (scroll) ---");
-  const scrollResult = await qdrantClient.scroll(COLLECTION_NAME, {
+  const scrollResult = await getQdrantClient().scroll(COLLECTION_NAME, {
     limit: 10,
     with_payload: true,
     with_vector: false, // skip vectors to keep output readable

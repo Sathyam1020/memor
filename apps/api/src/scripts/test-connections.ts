@@ -1,6 +1,6 @@
 import "dotenv/config";
 import OpenAI from "openai";
-import { qdrantClient } from "../lib/qdrant.js";
+import { getQdrantClient } from "../lib/qdrant.js";
 
 async function testOpenAI(): Promise<void> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -25,7 +25,7 @@ async function testOpenAI(): Promise<void> {
 }
 
 async function testQdrant(): Promise<void> {
-  const response = await qdrantClient.getCollections();
+  const response = await getQdrantClient().getCollections();
 
   console.log(`  Collections found: ${response.collections.length}`);
   if (response.collections.length > 0) {

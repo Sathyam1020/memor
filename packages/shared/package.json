@@ -1,0 +1,12 @@
+{
+  "name": "@memor/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

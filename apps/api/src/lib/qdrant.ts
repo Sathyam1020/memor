@@ -28,9 +28,6 @@ export function getQdrantClient(): QdrantClient {
   return client;
 }
 
-// Keep backward compat for test-connections.ts
-export const qdrantClient = getQdrantClient();
-
 /**
  * Creates the "meetings" collection if it doesn't already exist.
  *
@@ -70,11 +67,11 @@ export async function createCollection(): Promise<void> {
  * Stores chunks + their vectors as Qdrant "points."
  *
  * A point = ID + vector + payload (metadata + text).
- * We use upsert (update-or-insert) so re-ingesting the same
- * meeting overwrites existing points instead of creating duplicates.
+ * We use upsert so re-ingesting overwrites existing points.
  *
- * IDs are deterministic: hash of meetingId + globalChunkIndex,
- * so the same chunk always maps to the same point.
+ * IDs use crypto.randomUUID() — collision-safe at any scale.
+ * Re-ingestion idempotency will be handled at the application
+ * layer (Postgres) in Phase 2: delete old points, then re-insert.
  */
 export async function upsertChunks(
   chunks: Chunk[],
@@ -89,7 +86,7 @@ export async function upsertChunks(
   const qdrant = getQdrantClient();
 
   const points = chunks.map((chunk, i) => ({
-    id: deterministicId(chunk.metadata.meetingId, chunk.metadata.globalChunkIndex),
+    id: crypto.randomUUID(),
     vector: vectors[i],
     payload: {
       text: chunk.text,
@@ -106,25 +103,6 @@ export async function upsertChunks(
     `Upserted ${points.length} points into "${COLLECTION_NAME}":`,
     response
   );
-}
-
-/**
- * Generates a deterministic unsigned 64-bit integer ID from meetingId + chunkIndex.
- * This ensures re-ingesting the same meeting overwrites the same points.
- *
- * Uses a simple string hash — not cryptographic, just needs to be
- * deterministic and well-distributed.
- */
-function deterministicId(meetingId: string, globalChunkIndex: number): number {
-  const str = `${meetingId}::${globalChunkIndex}`;
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  // Qdrant needs positive integers
-  return Math.abs(hash);
 }
 
 export { COLLECTION_NAME };

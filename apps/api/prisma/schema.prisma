@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MeetingStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+model User {
+  id        String    @id                // Clerk user ID
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  meetings  Meeting[]
+}
+
+model Meeting {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  title     String
+  createdAt DateTime      @default(now())
+  status    MeetingStatus @default(PENDING)
+  chunks    Int           @default(0)
+  sources   MeetingSource[]
+}
+
+model MeetingSource {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  fileName  String
+  createdAt DateTime @default(now())
+}

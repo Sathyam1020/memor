@@ -3,6 +3,7 @@ import { embedText } from "./embeddings.js";
 import { getQdrantClient, COLLECTION_NAME } from "./qdrant.js";
 
 const ANSWER_MODEL = "gpt-4o-mini";
+const MIN_SIMILARITY_SCORE = 0.3;
 
 export interface SearchResult {
   text: string;
@@ -49,18 +50,20 @@ export async function searchMeetings(
     filter,
   });
 
-  return results.map((point) => {
-    const payload = point.payload as Record<string, unknown>;
-    return {
-      text: payload.text as string,
-      score: point.score,
-      meetingId: payload.meetingId as string,
-      meetingTitle: payload.meetingTitle as string,
-      sourceFile: payload.sourceFile as string,
-      chunkIndex: payload.chunkIndex as number,
-      globalChunkIndex: payload.globalChunkIndex as number,
-    };
-  });
+  return results
+    .filter((point) => point.score >= MIN_SIMILARITY_SCORE)
+    .map((point) => {
+      const payload = point.payload as Record<string, unknown>;
+      return {
+        text: payload.text as string,
+        score: point.score,
+        meetingId: payload.meetingId as string,
+        meetingTitle: payload.meetingTitle as string,
+        sourceFile: payload.sourceFile as string,
+        chunkIndex: payload.chunkIndex as number,
+        globalChunkIndex: payload.globalChunkIndex as number,
+      };
+    });
 }
 
 /**
