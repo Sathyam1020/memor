@@ -1,0 +1,43 @@
+James: OK let's jump into the incident post-mortem for last Thursday's outage. For anyone who wasn't on call, we had a full production outage from 2:14 PM to 3:47 PM EST — 93 minutes of downtime affecting all customers.
+
+Rachel: Can you walk us through the timeline?
+
+James: Sure. At 2:14 PM our monitoring picked up a spike in 5xx errors on the payments service. Within two minutes it cascaded to the order service and then the API gateway. By 2:20 PM, 100 percent of requests were failing.
+
+Rachel: What was the root cause?
+
+James: It was a database connection pool exhaustion. We deployed a new version of the payments service at 1:45 PM that had a connection leak in the retry logic. Every failed transaction opened a new database connection but never released it. Under normal load it would have taken hours to exhaust the pool, but we also had a marketing campaign that started at 2 PM which doubled our traffic.
+
+Priya: So the deploy plus the traffic spike was the perfect storm.
+
+James: Exactly. The connection pool hit its 200 connection limit, new requests started queuing, timeouts cascaded upstream, and the circuit breakers in the API gateway eventually tripped and started returning 503s for everything — not just payments.
+
+Rachel: How did we resolve it?
+
+James: At 2:35 PM the on-call engineer identified the connection leak in the deploy diff. We rolled back the payments service to the previous version at 2:42 PM. But the database was still overloaded with 200 zombie connections, so we had to manually kill those. The database recovered by 3:15 PM and we gradually restored traffic. Full recovery was confirmed at 3:47 PM.
+
+Rachel: What are the action items to prevent this from happening again?
+
+James: I have five. First, we need connection pool monitoring with alerts — we had no visibility into pool utilization. That's on me, I'll have it done by next Friday. Second, we need a pre-deploy load test that specifically checks for connection leaks. Priya, can you own that?
+
+Priya: Yes. I'll add it to our CI pipeline. I'm thinking we run a 5-minute soak test with simulated load after each deploy to staging. Should catch leaks before they hit production.
+
+James: Perfect. Third, we need to implement connection pool timeouts — right now connections can be held indefinitely. I want a 30-second max lifetime with forced recycling. Fourth, we need to decouple our circuit breakers so a payments failure doesn't take down the entire API. Right now the gateway treats all downstream services as one group.
+
+Rachel: Who's owning the circuit breaker work?
+
+James: I'd like to assign that to the platform team. Kevin, can your team take that?
+
+Kevin: Yeah, we've actually been planning to move to per-service circuit breakers. This just bumps the priority. I can have a design doc by end of week and implementation within two sprints.
+
+James: Great. And fifth — this is more of a process item — we need to avoid deploying within an hour of any scheduled traffic spike. The marketing team launched their campaign at 2 PM, and we deployed at 1:45 PM. If we'd deployed in the morning, we would have caught the leak under normal load.
+
+Rachel: That's a good policy. Can we enforce that through the deploy system?
+
+James: We can add a deployment freeze window that syncs with the marketing calendar. I'll work with the marketing ops team to set that up.
+
+Rachel: OK, let me summarize the cost of this incident. We had 93 minutes of downtime, approximately 2,400 failed transactions, and based on our average order value that's roughly $180,000 in lost revenue. About 40 percent of those customers retried successfully after recovery, so net impact is closer to $108,000. We also had 15 support tickets and 3 enterprise customers who escalated to their account managers.
+
+James: One more thing — I want to give a shout-out to Maria on the on-call team. She was the one who identified the connection leak in the diff within 20 minutes of the first alert. Without that, we'd have been debugging blind for much longer.
+
+Rachel: Agreed. Let's make sure that's recognized in the engineering all-hands. Alright, action items are clear, owners are assigned. Let's follow up in next week's infrastructure meeting. Thanks everyone.

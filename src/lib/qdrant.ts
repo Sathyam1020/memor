@@ -46,17 +46,24 @@ export async function createCollection(): Promise<void> {
 
   if (exists) {
     console.log(`Collection "${COLLECTION_NAME}" already exists, skipping creation.`);
-    return;
+  } else {
+    const response = await qdrant.createCollection(COLLECTION_NAME, {
+      vectors: {
+        size: EMBEDDING_DIMENSIONS,
+        distance: "Cosine",
+      },
+    });
+    console.log(`Collection "${COLLECTION_NAME}" created:`, response);
   }
 
-  const response = await qdrant.createCollection(COLLECTION_NAME, {
-    vectors: {
-      size: EMBEDDING_DIMENSIONS,
-      distance: "Cosine",
-    },
+  // Ensure payload index exists for meetingId filtering.
+  // Qdrant Cloud requires an explicit index to filter on a field.
+  // This is idempotent — calling it on an existing index is a no-op.
+  await qdrant.createPayloadIndex(COLLECTION_NAME, {
+    field_name: "meetingId",
+    field_schema: "keyword",
+    wait: true,
   });
-
-  console.log(`Collection "${COLLECTION_NAME}" created:`, response);
 }
 
 /**

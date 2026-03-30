@@ -1,0 +1,41 @@
+Sarah: Alright everyone, let's get started with the Q3 planning meeting. First item on the agenda is the API redesign that's been on our backlog for two quarters now.
+
+Mike: Right, so I've been looking at our current REST endpoints and the main issue is that we have over 40 endpoints that could be consolidated into about 15 with a proper GraphQL layer. The response times are also suffering because clients are making 6 to 8 round trips for what should be a single query.
+
+Sarah: What's the timeline looking like for that migration?
+
+Mike: If we dedicate two engineers full time, I think we can have the core GraphQL schema done in 4 weeks, with the migration layer running in parallel for another 3 weeks after that. So roughly 7 weeks total before we can start deprecating old endpoints.
+
+Sarah: That's aggressive. Lisa, what's your take from the frontend perspective?
+
+Lisa: Honestly the frontend team has been waiting for this. Every time we build a new feature we're writing these massive data fetching layers to work around the REST limitations. GraphQL would let us specify exactly what we need. I'd say the frontend migration would take about 2 weeks once the schema is stable.
+
+Sarah: OK so we're looking at roughly 9 weeks end to end. Let's budget for 12 to account for unknowns. I want this shipped before the October board meeting. Mike, can you draft an RFC by end of week?
+
+Mike: Will do. I'll include the performance benchmarks from our proof of concept last month. We saw a 60 percent reduction in payload size and 40 percent fewer round trips.
+
+Sarah: Perfect. Next item — we need to talk about the hiring plan. We got budget approval for three senior engineers and one engineering manager. Dave, where are we on the pipeline?
+
+Dave: We have 12 candidates in the pipeline right now. Four are at the onsite stage, three just passed the phone screen, and five are new applications we haven't reviewed yet. The four onsite candidates are all for the senior backend role.
+
+Sarah: When are those onsites scheduled?
+
+Dave: Two this week, two next week. I'm feeling good about at least two of them based on their take-home projects.
+
+Sarah: Great. Let's make sure we close those quickly. I don't want to lose good candidates to slow process. What about the EM role?
+
+Dave: That's been harder. We've only had two serious applicants for the engineering manager position. I think we need to expand our sourcing — maybe engage a recruiter for that specific role.
+
+Sarah: Agreed. Let's get a recruiter engaged by Friday. Budget is approved, no need to wait. Any other topics?
+
+Lisa: One more thing — the design system migration. We've been running both the old component library and the new design system in parallel for 3 months now. It's adding about 200KB to our bundle size. I'd like to propose we set a hard deadline to fully migrate by end of Q3 and remove the old library entirely.
+
+Sarah: Makes sense. What's blocking the migration?
+
+Lisa: About 30 components still reference the old library. Most are straightforward swaps but there are 5 or 6 complex ones — the data table, the rich text editor, and the modal system — that need significant rework.
+
+Sarah: OK, let's prioritize those complex components first. If they're done by mid-August, the straightforward ones can be knocked out in a sprint or two after that. Lisa, can you put together a migration tracker?
+
+Lisa: Already started one. I'll share it in Slack after this meeting.
+
+Sarah: Perfect. Alright, that covers our three big items for Q3 — API redesign, hiring push, and design system migration. Let's reconvene next Tuesday for status updates. Meeting adjourned.
