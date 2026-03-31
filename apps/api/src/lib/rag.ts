@@ -3,7 +3,7 @@ import { embedText } from "./embeddings.js";
 import { getQdrantClient, COLLECTION_NAME } from "./qdrant.js";
 
 const ANSWER_MODEL = "gpt-4o-mini";
-const MIN_SIMILARITY_SCORE = 0.3;
+const MIN_SIMILARITY_SCORE = 0.2;
 
 export interface SearchResult {
   text: string;

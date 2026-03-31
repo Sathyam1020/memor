@@ -31,6 +31,17 @@ model Meeting {
   status    MeetingStatus @default(PENDING)
   chunks    Int           @default(0)
   sources   MeetingSource[]
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  role      String   // "user" or "assistant"
+  content   String
+  sources   Json?    // stored as JSON array of Source objects
+  createdAt DateTime @default(now())
 }
 
 model MeetingSource {
